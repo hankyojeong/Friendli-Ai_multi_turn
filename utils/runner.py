@@ -29,6 +29,7 @@ def run_single_payload(
     max_tokens: int = 4096,
     fixed_out_dir=None,
     fixed_log_dir=None,
+    multi_turn: bool = False,
 ):
     if fixed_out_dir is not None and fixed_log_dir is not None:
         out_dir, log_dir = fixed_out_dir, fixed_log_dir
@@ -40,10 +41,19 @@ def run_single_payload(
     qno = varname.replace("payload_", "", 1)
     test_stem = output_prefix or _test_stem_from_varname(varname)
 
+    print(f"[RUN] Multi-turn mode: {multi_turn}")
+
     # 1) LLM 호출
     prompt = generate_system_prompt(payload, prompt_dir, prompt_file_no)
     chat = payload["user_question"]
-    llm_answer = call_llm(client, model, prompt, chat, max_tokens=max_tokens)
+    llm_answer = call_llm(
+        client,
+        model,
+        prompt,
+        chat,
+        max_tokens=max_tokens,
+        multi_turn=multi_turn,
+    )
 
     # 2) 저장 & 실행
     py_path, run_stdout = save_and_exec_from_llm(llm_answer, str(out_dir / f"{test_stem}.py"))
@@ -96,9 +106,12 @@ def run_all_payloads(
     prompt_file_no: int,
     exp_root_dir,
     max_tokens: int = 4096,
+    multi_turn: bool = False,
 ):
     results = []
     out_dir, log_dir, _ = get_out_dirs(exp_root_dir, prompt_file_no, reuse=False)
+
+    print(f"[RUN-ALL] Multi-turn mode: {multi_turn}")
 
     for k in _collect_payload_keys(namespace):
         try:
@@ -113,6 +126,7 @@ def run_all_payloads(
                 max_tokens=max_tokens,
                 fixed_out_dir=out_dir,
                 fixed_log_dir=log_dir,
+                multi_turn=multi_turn,
             )
             results.append(r)
         except Exception as e:
