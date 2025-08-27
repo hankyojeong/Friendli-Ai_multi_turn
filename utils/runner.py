@@ -40,13 +40,25 @@ def run_single_payload(
     qno = varname.replace("payload_", "", 1)
     test_stem = output_prefix or _test_stem_from_varname(varname)
 
-    # 1) LLM 호출
+    # 1) 대화 메시지 초기화
     prompt = generate_system_prompt(payload, prompt_dir, prompt_file_no)
     chat = payload["user_question"]
-    llm_answer = call_llm(client, model, prompt, chat, max_tokens=max_tokens)
+    messages = [
+        {"role": "system", "content": prompt},
+        {"role": "user", "content": chat},
+    ]
 
-    # 2) 저장 & 실행
-    py_path, run_stdout = save_and_exec_from_llm(llm_answer, str(out_dir / f"{test_stem}.py"))
+    # 2) LLM-실행 루프
+    while True:
+        llm_answer = call_llm(client, model, messages, max_tokens=max_tokens)
+        py_path, run_stdout = save_and_exec_from_llm(
+            llm_answer, str(out_dir / f"{test_stem}.py")
+        )
+        messages.append({"role": "assistant", "content": llm_answer})
+        user_msg = run_stdout if run_stdout else "[NO OUTPUT]"
+        messages.append({"role": "user", "content": user_msg})
+        if "FINAL_ANSWER" in llm_answer:
+            break
 
     # 3) JSON 저장
     out_json = {
@@ -118,3 +130,4 @@ def run_all_payloads(
         except Exception as e:
             results.append({"payload_var": k, "error": repr(e)})
     return results
+

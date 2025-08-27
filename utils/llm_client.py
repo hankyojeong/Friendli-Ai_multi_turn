@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, List, Dict
 from openai import OpenAI
 
 def make_client(api_key: Optional[str] = None,
@@ -13,13 +13,11 @@ def make_client(api_key: Optional[str] = None,
         default_headers={"x-friendli-team": team_id},
     )
 
-def call_llm(client: OpenAI, model: str, system_prompt: str, user_text: str, **kw) -> str:
+def call_llm(client: OpenAI, model: str, messages: List[Dict[str, str]], **kw) -> str:
+    """Send a chat completion request with an explicit message list."""
     resp = client.chat.completions.create(
         model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_text},
-        ],
-        **kw
+        messages=messages,
+        **kw,
     )
     return resp.choices[0].message.content
