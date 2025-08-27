@@ -1,0 +1,866 @@
+﻿question_no,question,sys_prompt_no,output,llm_answer,정답유무
+1_1,2025년 4월 기준 국내 단기 체류 외국인 수는?,1,"cnt
+0","<think>
+Okay, let's tackle this problem. The user is asking for the number of foreign residents in South Korea who are staying short-term as of April 2025. First, I need to figure out how to structure the SQL query based on the provided schema and metadata.
+
+The data is stored in a table named ""1_tb_resident_foreigners"" from the file ""1_국내체류외국인.xlsx"". The schema includes category, cnt, p_year, p_month. The categories have aliases, and the user wants ""단기체류"" which isn't directly in the aliases. The meta_description mentions that categories are disjoint, so I don't have to worry about overlaps. 
+
+The user's question specifies a month and year, so I need to filter for p_year=2025 and p_month=4. Also, the category should be '단기체류'. Since the aliases for category are listed, I need to check if '단기체류' is a valid category. The value_alias lists '장기체류' and others, but not '단기체류' directly, but the description mentions ""단기체류/장기체류거소/장기체류등록"" as categories. So '단기체류' is a valid category.
+
+Next, I need to ensure that the SQL query selects the correct cnt where category is '단기체류', p_year is 2025, and p_month is 4. Since the final output should be a single number, I can use COALESCE(SUM(...), 0) to handle possible nulls. Also, the columns should be uppercased for consistency, so the category comparison should be on uppercase TRIMmed values. The answer is to output the cnt in a single row.
+
+So the SQL will select from the table, filter by the category (after normalizing with TRIM and UPPER), and the year and month. The result is a single number, which is then formatted into a DataFrame and printed as CSV without an index.
+</think>
+
+```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+sql = '''
+SELECT
+  COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt
+FROM {Q_TBL}
+WHERE UPPER(TRIM(""category"")) = '단기체류'
+  AND CAST(""p_year"" AS INT) = 2025
+  AND CAST(""p_month"" AS INT) = 4
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+1_2,2023년 7월 기준 국내 단기 체류 외국인 수는?,1,"cnt
+652095","<think>
+Okay, let me try to figure out how to answer the user's question. The question is asking for the number of foreign residents in South Korea for short-term stays as of July 2023. 
+
+First, I need to check the provided data. The file is an Excel file named ""1_국내체류외국인.xlsx"" and the table is called ""1_tb_resident_foreigners"". The description says it includes monthly statistics for short-term, long-term residence, and long-term registration stays.
+
+Looking at the schema, there's a ""category"" column which likely categorizes the type of stay (like short-term, long-term residence, etc.), a ""cnt"" column for the count, and ""p_year"" and ""p_month"" for the year and month. The value aliases show that ""장기체류"" includes both ""장기체류거소"" and ""장기체류등록"", but the user is asking about short-term stays, so I should exclude those. Instead, I need to find the category that corresponds to short-term stays. The original data might have a category like ""단기체류"" which should be the right one here.
+
+The user wants data for July 2023, so the year should be 2023 and the month 7. The meta description's policy says the categories are disjoint, which means each row is in one category only, so I don't have to worry about overlapping categories. The long-term policy uses sum, but since we're focusing on short-term, we can ignore that. The time order is year and month, so that's already in the right format.
+
+Now, the SQL query needs to filter the table where the category is ""단기체류"", the year is 2023, and the month is 7. Then sum the count. Since the output should be just the number, the query should select the sum of cnt where those conditions are met. Also, need to make sure that if there's no data for that month, it returns 0 instead of NULL. Using COALESCE(SUM(cnt), 0) should handle that.
+
+Let me structure the SQL. The table is Q_TBL. So the query would be:
+
+SELECT COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt
+FROM Q_TBL
+WHERE TRIM(""category"") = '단기체류'
+  AND ""p_year"" = 2023
+  AND ""p_month"" = 7
+
+I should cast cnt as INT to make sure it's summed correctly. Also, using TRIM on category to handle any leading/trailing spaces. Then, print the result. Since it's a single value, the output will be a DataFrame with one row and one column. Using to_csv or to_string will just print the number as required.
+</think>
+
+```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+sql = '''
+SELECT
+  COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt
+FROM {Q_TBL}
+WHERE TRIM(""category"") = '단기체류'
+  AND ""p_year"" = 2023
+  AND ""p_month"" = 7
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_string(index=False))
+```",
+1_3,2024년 이후 월별 장기체류 외국인수 추이는?,1,"p_year,p_month,cnt
+2024,1,1893911
+2024,2,1891853
+2024,3,1912870
+2024,4,1933874
+2024,5,1953619
+2024,6,1966820
+2024,7,1982246
+2024,8,1986270
+2024,9,2009960
+2024,10,2033177
+2024,11,2042013
+2024,12,2042017
+2025,1,2042236","<think>
+Okay, I need to answer the user's question: ""2024년 이후 월별 장기체류 외국인수 추이는?"" which translates to ""What is the monthly trend of long-term resident foreigners after 2024?"" using the given schema and meta information.
+
+First, let's understand the data. The table is 1_tb_resident_foreigners with columns category, cnt, p_year, p_month. The meta_description says that ""장기체류"" includes '장기체류거소' and '장기체류등록', and there's a long_term_policy of sum. The time_order is p_year and p_month. The user is asking for the monthly count of long-term residents after 2024.
+
+So, the plan is to filter the data where the category is either '장기체류거소' or '장기체류등록' (since those are the aliases for 장기체류), and where the year is 2024 or later. Then, sum the cnt for each month, ordered by year and month.
+
+I need to make sure that the category is matched correctly using the aliases. The meta says value_alias for 장기체류 includes both '장기체류거소' and '장기체류등록', so the WHERE clause should check for those exact values. Also, the policies mention categories_disjoint is true, so there's no overlap between the categories. 
+
+The SQL query should select p_year, p_month, and the sum of cnt. Since the user wants the trend after 2024, the condition would be p_year * 100 + p_month >= 202400. Alternatively, checking p_year >= 2024 and for months, but since the data is ordered by p_year and p_month, handling it as a combined number might be easier.
+
+Also, the output should be ordered by p_year and p_month to show the chronological trend. The final output should have the sum of cnt for each month.
+
+Let me structure the SQL:
+
+SELECT p_year, p_month, SUM(cnt) as cnt 
+FROM table 
+WHERE category IN (aliases for 장기체류) 
+AND (p_year > 2024 OR (p_year = 2024 AND p_month >= 1))
+GROUP BY p_year, p_month
+ORDER BY p_year, p_month
+
+But since the user says ""이후"", which is ""after 2024"", does that include 2024? In Korean, ""이후"" can mean ""after and including the specified time"", but sometimes it's exclusive. However, since the user is asking for a trend, it's likely they want data starting from the beginning of 2024. So I'll include 2024 and onwards.
+
+Wait, the user's question is ""2024년 이후"" which literally is ""after 2024"", but in Korean, this can sometimes mean ""2024 and onwards"". But to be precise, I should check. If the user wants data starting from 2024, then the condition is p_year >= 2024. If they want strictly after 2024 (2025 onwards), then p_year > 2024. The original question's exact phrasing is important here. The question is ""2024년 이후 월별..."", which might mean ""monthly trend from and after 2024"". So I think including 2024 is correct. 
+
+Therefore, the WHERE clause would be:
+
+UPPER(TRIM(""category"")) IN (the aliases for 장기체류)
+AND (p_year > 2024 OR (p_year = 2024 AND p_month >= 1))
+
+But to avoid dealing with the month part for the current year, maybe combining year and month into a single integer and comparing against 202400. For example, if p_year is 2024, p_month 05 would be 202405, which is >= 202400. So the condition could be (p_year * 100 + p_month) >= 202400. That way, it's easier.
+
+So, the SQL would group by p_year and p_month, sum the cnt, and order by those.
+
+Now, translating this into the SQL string. The table name is ""1_tb_resident_foreigners"". The category aliases are ['장기체류거소','장기체류등록']. The columns are p_year, p_month, cnt, and category.
+
+Putting it all together, the SQL would be:
+
+SELECT
+    ""p_year"",
+    ""p_month"",
+    COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt
+FROM {Q_TBL}
+WHERE 
+    UPPER(TRIM(""category"")) IN ('장기체류거소', '장기체류등록')
+    AND (""p_year"" * 100 + ""p_month"") >= 202400
+GROUP BY ""p_year"", ""p_month""
+ORDER BY ""p_year"", ""p_month""
+
+This should give the monthly totals for long-term residents from 2024 onwards. The COALESCE ensures that if a month has zero entries, it shows 0 instead of NULL. The ORDER BY ensures the trend is in chronological order.
+
+Another consideration: the data might not have records beyond 2024, but the query should still handle that, returning what's available.
+
+Now, format this into the Python code block. The code will read the Excel file into a DataFrame, create an in-memory SQLite database, and then run the query. The output is printed as CSV without the index.
+</think>
+
+```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+df = pd.read_excel(FILE)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+sql = '''
+SELECT
+    ""p_year"",
+    ""p_month"",
+    COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt
+FROM {Q_TBL}
+WHERE 
+    UPPER(TRIM(""category"")) IN ('장기체류거소', '장기체류등록')
+    AND (""p_year"" * 100 + ""p_month"") >= 202400
+GROUP BY ""p_year"", ""p_month""
+ORDER BY ""p_year"", ""p_month""
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+1_4,2023년 월별 장기체류 외국인수 추이는?,1,"year,month,cnt
+2023,1,1694876
+2023,2,1698798
+2023,3,1724809
+2023,4,1743811
+2023,5,1766131
+2023,6,1785522
+2023,7,1801477
+2023,8,1812929
+2023,9,1838652
+2023,10,1858699
+2023,11,1874103
+2023,12,1881921","<think>
+Okay, let's tackle this query. The user is asking for the monthly trend of long-term resident foreigners in 2023.
+
+First, I need to understand the data schema. The table is 1_tb_resident_foreigners with columns category, cnt, p_year, p_month. The category has aliases for long-term stays, like '장기체류거소' and '장기체류등록'. The meta says to sum these categories under '장기체류'.
+
+The user wants 2023's monthly data, so filter p_year = 2023. Group by p_month and sum the cnt. Also, need to include both categories. The result should have p_year, p_month, and the summed cnt.
+
+I need to make sure that the query correctly aggregates the categories into '장기체류'. Using COALESCE to handle any nulls and ensure the sum is zero if there's no data. Also, order by p_month to get the correct sequence.
+
+Check if the aliases are correctly used. The value_alias for '장기체류' includes both '장기체류거소' and '장기체류등록', so the WHERE clause should include those. Then, group by p_year and p_month, sum the cnt, and order by p_month.
+</think>
+
+```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: 2023년, category = 장기체류(장기체류거소/장기체류등록), 월별 합계
+sql = '''
+SELECT
+  ""p_year"" AS year,
+  ""p_month"" AS month,
+  COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt
+FROM {Q_TBL}
+WHERE ""p_year"" = 2023
+  AND UPPER(TRIM(""category"")) IN ('장기체류거소', '장기체류등록')
+GROUP BY ""p_year"", ""p_month""
+ORDER BY ""p_year"", ""p_month""
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+1_5,2023~2025년 3년간 3월 장기체류 외국인 수와 전년 대비 증감률은?,1,"year,total,prev,diff,growth_rate
+2023,1724809,,,0.0
+2024,1912870,1724809.0,188061.0,10.9","<think>
+Okay, let's try to figure out how to answer this question. The user is asking for the number of long-term foreign residents in March for the years 2023 to 2025 and the year-over-year growth rate. 
+
+First, I need to understand the data structure. The table has columns category, cnt, p_year, and p_month. The meta_description mentions that ""장기체류"" includes both ""장기체류거소"" and ""장기체류등록"". So, I need to sum those categories.
+
+The user wants data for March each year from 2023 to 2025. So, p_year should be 2023, 2024, 2025 and p_month should be 3. 
+
+But the question also asks for the year-over-year change. That means for each year, compare the March count with the previous year's March. So, I need to calculate the difference and the percentage change.
+
+I'll need to write a SQL query that first gets the total count for each year's March. Then, use window functions to get the previous year's value. Then compute the difference and growth rate.
+
+Wait, SQLite doesn't support LAG() function in all versions, but since it's using pandas and SQLite in memory, I should check if LAG is allowed. But the user specified to use only one SQL query. So maybe I can use a self-join to get the previous year's data.
+
+Another approach: create a CTE that gets each year's March count, then join with the same CTE shifted by one year to get the previous year's value. Then calculate the difference and growth rate.
+
+So the steps:
+
+1. Filter the table for category in (""장기체류거소"", ""장기체류등록"") and p_month = 3 and p_year between 2023 and 2025.
+
+2. Group by p_year, sum the cnt to get the total for each March.
+
+3. Then, for each year, get the previous year's total. 
+
+But how to do this in a single query. Maybe use a subquery to get the previous year's value.
+
+For example, for each year, select the count of that year and the count of the previous year (year -1). Then compute the difference and growth rate.
+
+So in SQL:
+
+WITH yearly AS (
+    SELECT p_year, SUM(cnt) AS total
+    FROM table
+    WHERE category IN ('장기체류거소', '장기체류등록') AND p_month = 3 AND p_year BETWEEN 2023 AND 2025
+    GROUP BY p_year
+)
+SELECT 
+    y.p_year,
+    y.total AS current,
+    (SELECT y2.total FROM yearly y2 WHERE y2.p_year = y.p_year - 1) AS previous,
+    (y.total - (SELECT y2.total FROM yearly y2 WHERE y2.p_year = y.p_year - 1)) AS diff,
+    (CASE WHEN (SELECT y2.total FROM yearly y2 WHERE y2.p_year = y.p_year - 1) = 0 THEN 0 
+          ELSE (y.total * 100.0 / (SELECT y2.total FROM yearly y2 WHERE y2.p_year = y.p_year - 1) - 100) 
+         END) AS growth_rate
+FROM yearly y
+ORDER BY y.p_year;
+
+This should give the current year's March count, previous year's, the difference, and growth rate. Then, output the result.
+
+But check if the years 2023-2025 are all present. Also, note that 2023 will have no previous year in this data, so the previous value would be NULL. The user might want to exclude 2023's growth rate since there's no 2022 data? Or show 0 or NULL.
+
+In the problem statement, the user might expect the growth rate for 2024 (compared to 2023) and 2025 (compared to 2024). So 2023's growth rate would be NULL.
+
+Now, translating this into SQL using the correct table name and column names. The original table is 1_tb_resident_foreigners. Also, need to handle the category aliases as per the meta_description.
+
+So, the SQL should select p_year, sum(cnt) where category is in the long-term categories (장기체류거소 and 장기체류등록), p_month=3, and p_year between 2023 and 2025. Then, join with the same data for previous year.
+
+I also need to make sure that the SUM is done correctly. Also, the category comparison should be case-insensitive? But since the data is already stored, maybe it's okay to use the exact strings.
+
+Now, putting this into the SQL query as per the rules. The code should use the specified Q_TBL variable, and the SQL should be a single string with .format(Q_TBL=Q_TBL).
+
+So the final code would involve creating a CTE for yearly totals, then joining with subqueries to get previous year's data. Then compute the difference and growth rate.
+
+I need to make sure that the SQL is correct and uses the correct table name. Also, the output columns are current year's count, previous year's count, difference, growth rate. The user asked for both the count and the growth rate.
+
+Thus, the code would generate this SQL, execute it, and output the result as a DataFrame with columns for year, count, previous year count, difference, and growth rate.
+</think>
+
+```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: March 2023~2025 장기체류 합계와 전기 증감률
+sql = '''
+WITH yearly AS (
+  SELECT
+    CAST(""p_year"" AS INT) AS year,
+    COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS total
+  FROM {Q_TBL}
+  WHERE
+    UPPER(TRIM(""category"")) IN ('장기체류거소', '장기체류등록')
+    AND CAST(""p_month"" AS INT) = 3
+    AND CAST(""p_year"" AS INT) BETWEEN 2023 AND 2025
+  GROUP BY CAST(""p_year"" AS INT)
+)
+SELECT
+  y.year,
+  y.total,
+  (SELECT y2.total FROM yearly y2 WHERE y2.year = y.year - 1) AS prev,
+  (y.total - (SELECT y2.total FROM yearly y2 WHERE y2.year = y.year - 1)) AS diff,
+  COALESCE(
+    ROUND(
+      (y.total * 100.0 / NULLIF((SELECT y2.total FROM yearly y2 WHERE y2.year = y.year - 1), 0) - 100),
+      2
+    ),
+    0
+  ) AS growth_rate
+FROM yearly y
+ORDER BY year
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+1_6,2023~2025년 3년간 1월 장기체류 외국인 수와 전년 대비 증감률은?,1,"year,cnt,growth_rate
+2023,1694876,
+2024,1893911,11.74
+2025,2042236,7.83","<think>
+Okay, I need to solve this user's question: ""2023~2025년 3년간 1월 장기체류 외국인 수와 전년 대비 증감률은?"" which translates to asking for the number of long-term foreign residents in South Korea for each January from 2023 to 2025, along with the year-over-year growth rate.
+
+First, let me understand the data structure. The user provided an Excel file (1_국내체류외국인.xlsx) which is loaded into the SQLite table 1_tb_resident_foreigners. The schema includes category, p_year, p_month, and cnt. The category has aliases: '장기체류' includes '장기체류거소' and '장기체류등록'. The user wants data for January of each year from 2023 to 2025. But wait, 2025 hasn't happened yet, so maybe the data only goes up to 2024. But the user might still want the query to include 2025 as a placeholder, assuming the data might be available or to show that there's no data for 2025.
+
+Next, I need to aggregate the count (cnt) for each January (p_month=1) where the category is either '장기체류거소' or '장기체류등록'. The aliases in the meta_description say that '장기체류' includes both, so I should filter category in those two values.
+
+The challenge is calculating the year-over-year growth rate. To do this, I need to compare each year's January count with the previous year's. For example, 2023 vs. 2024, and 2024 vs. 2025. But since we're dealing with SQL, I can use window functions. Specifically, use the LAG() function to get the previous year's count and compute the percentage change.
+
+The steps I need to follow in the SQL query:
+
+1. Filter the data to include only the '장기체류' categories and months January (p_month=1) for the years 2023, 2024, and 2025.
+2. Sum the cnt for each year and month, ensuring that if there's no data for a certain January, it's treated as zero using COALESCE.
+3. Use a window function to get the previous year's count (LAG) to calculate the difference and then the growth rate.
+4. Format the output to show the year, count, and growth rate (as a percentage) from the previous year.
+
+Wait, but the user's data might not have 2025 data yet. So if I include p_year up to 2025, but there's no data, the count would be zero, and the growth rate from 2024 would be (0 - 2024_count)/2024_count. That's a possible negative percentage, but that's correct based on data availability.
+
+Now, structuring the SQL:
+
+- Use a Common Table Expression (CTE) to aggregate the counts by year and month.
+- Then, in the final query, calculate the previous year's count and the growth rate.
+
+Let me outline the SQL steps:
+
+1. Create a CTE named 'annual_counts' that groups by year and month=1, sums the cnt, and orders by year.
+2. In the main query, select each year's data along with the previous year's count (using LAG).
+3. Calculate the difference and the growth rate as ((current - previous) / previous) * 100.
+4. Filter the final results to only the years 2023 to 2025, but since the LAG requires a previous year, maybe start from 2024.
+
+Wait, but 2023 is the start. For 2023, there's no previous year in the dataset, so the growth rate for 2023 would be null or zero. The user probably wants to see the growth rate from 2023 to 2024, and from 2024 to 2025. So in the final output, we can have rows for 2023, 2024, 2025, and the growth rate for 2024 is compared to 2023, and for 2025 to 2024.
+
+But in SQL, when using LAG, the first year (2023) will have a NULL for the previous year's count. To handle that, perhaps in the final output, we can filter out the first year's growth rate if it's NULL, or include it as blank.
+
+But the user's question is about the three years (2023-2025) and the growth rates between them. So the output should have columns: year, count, growth_rate (compared to previous year). For 2023, the growth rate would be NULL (no previous year), 2024 would have 2023's count, 2025 would have 2024's count.
+
+Now, translating this into SQL:
+
+First, in the CTE, filter for category in 장기체류, and p_month=1, and p_year between 2023 and 2025. Then sum the cnt.
+
+In the main query, use LAG to get the previous year's count, then calculate the difference and growth rate.
+
+But how to handle if the previous year's count is zero? However, the user's data might not have zero counts, so we can assume that if a year is missing, the count is zero. Wait, no. The data is for actual months, but in the case of 2025, if there's no data, the count is zero.
+
+But the query uses COALESCE(SUM, 0) so even if there are no entries for a certain year and month, it will show zero. So the CTE will have entries for 2023, 2024, 2025, each with their January counts.
+
+Therefore, in the main query, when using LAG, we can calculate the growth rate even if the previous year's count is zero (but division by zero is an issue. However, in SQL, dividing by zero will result in NULL or an error. To handle that, need to add a CASE statement to avoid division by zero. However, the data for the previous year is likely to exist, except for 2023 if the data starts from 2023, but since we are including p_year from 2023 onwards, the previous year for 2024 is 2023, and for 2025 is 2024. Assuming the data includes 2023 and 2024 (but not 2025), but the user is asking for 2023~2025, so the query should include all three.
+
+So, in the code, I'll proceed with the following SQL:
+
+WITH cte AS (
+  SELECT
+    p_year,
+    SUM(COALESCE(cnt, 0)) AS cnt
+  FROM ""1_tb_resident_foreigners""
+  WHERE UPPER(TRIM(category)) IN ('장기체류거소', '장기체류등록')
+    AND p_month = 1
+    AND p_year BETWEEN 2023 AND 2025
+  GROUP BY p_year
+  ORDER BY p_year
+)
+SELECT
+  p_year,
+  cnt,
+  LAG(cnt, 1) OVER (ORDER BY p_year) AS prev_cnt,
+  (cnt - LAG(cnt, 1) OVER (ORDER BY p_year)) / NULLIF(LAG(cnt, 1) OVER (ORDER BY p_year), 0) * 100 AS growth_rate
+FROM cte
+ORDER BY p_year;
+
+But in the final output, we need to ensure that p_year is within 2023 to 2025, and the growth rate is calculated from the previous year. But how to handle the 2023 case where there is no previous year? The LAG will return NULL, so the growth rate would be (current - NULL)/NULL, which is NULL. The user might want to display that as N/A or just not show it. However, the problem says to output the count and the growth rate for each of the three years, so maybe we need to include all three, even if the growth rate for 2023 is NULL.
+
+Alternatively, perhaps the user is interested in the growth from year to year, so the main rows would be 2024 (growth from 2023) and 2025 (growth from 2024). But the question asks for each January's count and the growth rate compared to the previous year. So for 2023, there is no previous year, so growth rate is NULL. For 2024 and 2025, growth rate is calculated.
+
+Now, putting this all together into the Python code. The code needs to load the data, create a CTE to aggregate the counts for the relevant years and month, then compute the growth rate using window functions.
+
+I need to make sure that the SQL uses the correct table name, which is ""1_tb_resident_foreigners"", with the ""category"" in the specified values. Also, p_month is 1 for January, and p_year is between 2023 and 2025.
+
+Also, ensure that the category is checked against the aliases: 장기체류 includes 장기체류거소 and 장기체류등록. The code should use UPPER(TRIM(category)) to normalize the category names.
+
+Testing the query with the given constraints, I think the code should be as outlined.
+</think>
+
+```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: 연도 별 1월 장기체류자 수 및 전년 대비 증감률
+sql = '''
+WITH YearlyCounts AS (
+  SELECT
+    CAST(""p_year"" AS INT) AS year,
+    COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt
+  FROM {Q_TBL}
+  WHERE UPPER(TRIM(""category"")) IN ('장기체류거소', '장기체류등록')
+    AND CAST(""p_month"" AS INT) = 1
+    AND CAST(""p_year"" AS INT) BETWEEN 2023 AND 2025
+  GROUP BY CAST(""p_year"" AS INT)
+  ORDER BY CAST(""p_year"" AS INT)
+)
+SELECT
+  year,
+  cnt,
+  ROUND(100.0 * (cnt - LAG(cnt, 1) OVER (ORDER BY year))/NULLIF(LAG(cnt, 1) OVER (ORDER BY year), 0), 2) AS growth_rate
+FROM YearlyCounts
+ORDER BY year
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+2_1,2025년 4월 경기 화성시의 장기체류 외국인 연령대 분포?,1,"age,cnt","<think>
+Okay, let's tackle this user question. They want to know the age distribution of long-term foreign residents in Hwaseong-si, Gyeonggi province for April 2025. 
+
+First, I need to make sure I understand the data schema. The table has columns like sido, sigungu, adong, gender, age, cert, nat_nm, cnt, base_ym, and gbn. The user is asking for age distribution, so the key columns here are age and cnt, along with the location and time.
+
+The base_ym is probably the base year and month, which needs to be standardized. The user mentioned ""2025년 4월"", which translates to April 2025, so I'll need to match the base_ym to that. Since base_ym is stored as a string, I'll have to process it to fit the format. The example shows that it might be in YYYYMM format, so I'll convert it by removing any hyphens, underscores, or dots. For April 2025, the target would be '202504'.
+
+Next, the location is ""경기 화성시"". I need to make sure that the sido is Gyeonggi and the sigungu is Hwaseong. But sometimes, 'sido' might be stored as '경기' or '경기도', and 'sigungu' as '화성' or '화성시'. So using the TRIM and UPPER functions to standardize the comparisons is important. Conditions like UPPER(TRIM(""sido"")) LIKE '경기%' and UPPER(TRIM(""sigungu"")) LIKE '화성%' should cover possible variations.
+
+The age field needs to be grouped by 'age' as is provided in the data, so I'll group by that column and sum the 'cnt' for each age group. Also, the 'gbn' column is mentioned in the meta_data, but the user didn't specify any particular category. Since the question is about long-term foreign residents, maybe 'gbn' should be checked if it's relevant. However, the user's question doesn't mention it, so perhaps it's safe to assume that 'gbn' can be ignored unless the table's metadata indicates it's necessary for filtering. Since the example doesn't mention it, I'll exclude it unless there's a need to filter further.
+
+The table name is 2_tb_long_term_foreigners_by_region, so need to ensure that the SQL query references that correctly. The final output should have the age groups and their corresponding counts for April 2025 in Hwaseong-si, Gyeonggi.
+
+Possible edge cases: There might be multiple entries for the same age group in the same month. Aggregating by age and summing the counts would handle that. Also, if there are no records for a particular age, COALESCE is used to return 0 instead of NULL.
+
+Putting it all together: The SQL query selects the age and sums the cnt where the base_ym is '202504', the sido is Gyeonggi, and the sigungu is Hwaseong-si. Then it groups by age and orders by age to show the distribution.
+</think>
+
+```python
+import sqlite3
+import pandas as pd
+
+FILE = ""2_장기체류외국인_지역별_현황.csv""
+TBL_RAW = ""2_tb_long_term_foreigners_by_region""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: 202504 기준 경기화성시의 연령대별 통계
+sql = '''
+SELECT
+  TRIM(""age"") AS age,
+  COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt
+FROM {Q_TBL}
+WHERE REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', '') = '202504'
+  AND (UPPER(TRIM(""sido"")) = '경기' OR UPPER(TRIM(""sido"")) LIKE '경기%')
+  AND (UPPER(TRIM(""sigungu"")) = '화성' OR UPPER(TRIM(""sigungu"")) LIKE '화성%')
+GROUP BY TRIM(""age"")
+ORDER BY TRIM(""age"")
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+2_2,2024년 6월 경기 화성시의 장기체류 외국인 중 거소외국인의 연령대 분포?,1,"age,total","<think>
+Okay, let's see. The user is asking for the age distribution of resident foreigners in Hwaseong-si, Gyeonggi-do for June 2024. The data is in the SQLite table 2_tb_long_term_foreigners_by_region.
+
+First, I need to identify the columns that will be used. The relevant columns are probably 'age' for the age group and 'cnt' for the count. The 'base_ym' should be the year-month, which in this case is 202406. Also, 'sido' should be Gyeonggi and 'sigungu' as Hwaseong. Also, 'gbn' might indicate the type, so I need to check if there's a code for resident foreigners.
+
+Wait, the description says ""장기체류 외국인의 거소현황: 국적/체류자격/행정동/연령대 구분"". And the column 'gbn' is part of the table. So 'gbn' might need to be filtered. Since the user is asking for ""거소외국인"", I need to find the correct code for that. Maybe 'gbn' is the category code. If ""장기체류"" is the GBN, but the user is specifically asking for those under resident status. Maybe '장기체류' is the correct code. But the user wants ""거소외국인"", which might be a specific category under the GBN. Hmm, maybe 'gbn' is the category that includes whether they are resident or not. Alternatively, maybe 'gbn' is a code for the type of stay. If the original data uses '장기체류' as the GBN, but the user is looking for those who are ""거소"" (resident), perhaps the 'gbn' should be checked for the correct value. However, the user's question says ""장기체류 외국인 중 거소외국인"", which translates to long-term foreign nationals whose residence is in the area. Maybe 'gbn' is not the main filter here. Alternatively, maybe 'gbn' isn't necessary as long as the 'sido' and 'sigungu' are set, and 'base_ym' is correct. Let me check the meta description. The meta_description includes 'table_nm, sido, sigungu, adong, gender, age, cert, nat_nm, cnt, base_ym, gbn'. So 'gbn' is part of the table. The user is looking for those who are resident (거소) in the area during June 2024. If 'gbn' is the indicator for resident, but the original data might have a different code. However, the user's question doesn't mention filtering by 'gbn', but specifically asks for '거소외국인', which could be that the data is already structured such that 'gbn' isn't necessary for this query. Alternatively, maybe the 'gbn' is part of the filter. Since the user hasn't specified any particular 'gbn' code, but the data's description includes '장기체류' as the status, perhaps the 'gbn' is not needed here. Wait, the user is asking for 장기체류 (long-term) among them, so maybe the GBN is already considered as 장기체류. But the user is further specifying that they are resident (거소) in Hwaseong. Maybe 'gbn' is not directly relevant here and the key is the 'sido', 'sigungu', and 'base_ym'. Let's proceed under that assumption.
+
+Next, the 'base_ym' should be '202406'. The 'sido' is 경기 (Gyeonggi), and 'sigungu' is 화성시 (Hwaseong-si). So the SQL needs to filter rows where 'base_ym' is '202406', 'sido' is '경기' or '경기도', and 'sigungu' is '화성시' or similar variations. Also, the 'age' column is the age group we need to group by. The output should show each age group and their count. The 'cnt' should be summed. So the SQL will select 'age' and the sum of 'cnt', grouped by 'age', ordered by age. The columns to include are 'age' and the total count. Also, handling the normalization for sido and sigungu as per the rules. Need to use COALESCE and SUM for the counts. Also, make sure the query is case-insensitive and trims any extra spaces. Let me structure the SQL accordingly.
+
+So the steps are: filter where base_ym is 202406, sido matches 'Gyeonggi' (via the uppercase and trim conditions), sigungu matches 'Hwaseong-si', then group by age, sum the cnt, and order by age. The final output should have age group and the count, ordered by age.
+</think>
+
+```python
+import sqlite3
+import pandas as pd
+
+FILE = ""2_장기체류외국인_지역별_현황.csv""
+TBL_RAW = ""2_tb_long_term_foreigners_by_region""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: 202406, Gyeonggi Hwaseong-si, age distribution of resident foreigners
+sql = '''
+SELECT
+  ""age"",
+  COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS total
+FROM {Q_TBL}
+WHERE
+  TRIM(""base_ym"") = '202406'
+  AND (
+    UPPER(TRIM(""sido"")) IN ('경기','경기도') OR 
+    UPPER(TRIM(""sido"")) LIKE '경기%'
+  )
+  AND (
+    UPPER(TRIM(""sigungu"")) IN ('화성','화성시','화성시 ') OR 
+    UPPER(TRIM(""sigungu"")) LIKE '화성%'
+  )
+  AND TRIM(""gbn"") IN ('장기체류')  -- source metadata classifies ""장기체류""
+GROUP BY ""age""
+ORDER BY CAST(REPLACE(""age"", '대', '') AS INT)
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+3_1,(E-9)국내 외국인 근로자의 월별 추이는?,1,"year,month,cnt
+2022,3,161921
+2022,6,163886
+2022,9,181247
+2022,12,203121
+2023,3,211361
+2023,6,225307
+2023,9,237846
+2023,12,247191
+2024,3,260047
+2024,6,260073
+2024,9,267452
+2024,12,271925
+2025,3,273139","<think>
+Okay, let's see. The user is asking about the monthly trend of foreign workers in Korea, specifically under the E-9 category. The data comes from the '3_외국인근로자.xlsx' file, and the table is named '3_tb_foreign_workers_permit'. The columns available are base_ym, sido, upjong, cnt.
+
+First, I need to extract the monthly data. The base_ym is probably in a format that can be parsed into year and month. Since the user wants a monthly trend, I should group by year and month.
+
+Wait, the base_ym might be stored as a string, maybe in YYYY-MM format or something similar. So I'll need to process it. The example showed using SUBSTR to extract parts of the date. Let's use SUBSTR to get the year and month. Also, since base_ym might have varying formats (like with dashes or periods), I should normalize it by removing non-numeric characters.
+
+The example used TRIM and REPLACE to clean the base_ym. So maybe first, I'll process base_ym to make sure it's in YYYYMM format. Wait, but the example for monthly trends used 'YYYY-MM' format. Hmm. Maybe the original data's base_ym is in a format that can be converted into a proper year-month.
+
+So the plan is: extract the year and month from base_ym, normalize it, then group by that to get the count each month. Sum the cnt per month, order by the year-month.
+
+Wait, the cnt is the number of permits per quarter? Because the description says it's quarterly data. Oh, the user is asking for monthly trend, but the data might be stored in a quarterly basis. So the data might have entries for Q1, Q2, etc. Wait, but the table's name mentions ""분기"" which is quarter. So the original data is quarterly. But the user wants monthly trend. So how to handle that.
+
+The master rules mention that if meta_description.quarter_policy is set, we use quarter_map to expand into months. But in the user's input, the meta_description doesn't include that. The user's payload has meta_description as an empty string. So maybe the data is stored with base_ym as quarterly periods. So for example, 2023-Q1. But the user wants monthly data. Hmm, but how to convert quarterly data into monthly. Since there's no information on how the data is distributed in the quarter, the example rules mention using either repeat_each_month or use_last_month_of_quarter. But without knowing the policy, maybe the data is stored as the last month of the quarter. For example, Q1 is represented as 2023-03. So perhaps we can process the base_ym to find the month part.
+
+Wait, the original data might have base_ym in a monthly format. Maybe the description is a mistake. Or maybe the data is stored as yearly and quarter, but the user wants to see monthly trend. Since the user's data's file name is 3_외국인근로자.xlsx and the table is quarterly, perhaps the base_ym is the quarter's end month. For example, 2023-Q1 is represented as 2023-03. So when extracting, we can take the month part.
+
+Wait, the columns are base_ym, sido, upjong, cnt. If base_ym is in quarters, perhaps it's stored as 2023Q1, 2023Q2, etc. But the example in the hard rules uses YYYYMM format. Hmm. Maybe the base_ym is in a format that can be converted to a month. For example, if it's stored as 202303, then year is first 4 digits, month next two. If it's in a different format, maybe with dashes or slashes, we need to process it.
+
+But the user's input doesn't mention that the data is quarterly. Wait, the user's question is about (E-9) foreign workers' monthly trend, but the table is for quarterly distribution. So there's a need to convert quarterly data into monthly. However, the master rules under [분기→월 전개(선언된 경우만)] say that if meta_description.quarter_policy is true, then use quarter_map. Since in the user's input, the meta_description is empty, maybe there's no such policy. Therefore, the data is stored as monthly, but the description mentions quarterly distribution. Hmm, this is a bit conflicting.
+
+Alternatively, maybe the base_ym is stored in a monthly format, and the description mentions that the data is provided quarterly. In any case, the user is asking for monthly trend, so we need to extract year and month from base_ym, sum the cnt per month, and order by year-month.
+
+So steps:
+
+1. Clean base_ym by trimming and removing non-digit characters, then split into year and month. For example, if base_ym is 2023Q1, then normalizing would not help. So maybe the actual data's base_ym is in a format like 202303 (YYYYMM). Let's assume that after processing, base_ym is in YYYYMM. If not, this code may fail, but according to the example, that's how it's handled.
+
+2. Extract year and month from base_ym. For each row, create a year and month column.
+
+3. Sum the cnt for each year-month.
+
+4. Order the results by year and month.
+
+So the SQL would be something like:
+
+SELECT 
+  CAST(SUBSTR(...) AS INT) AS year, 
+  CAST(...) AS month, 
+  SUM(cnt) AS total 
+FROM ... 
+GROUP BY year, month 
+ORDER BY year, month.
+
+Checking the hard rules, the example uses SUBSTR on the date field. So I'll use SUBSTR on base_ym after normalizing it.
+
+The code would:
+
+- Process base_ym by TRIM and replaces to remove non-digit characters.
+
+Wait, the safe rules mention base_ym normalization using REPLACE for -, _, . etc. So the code would:
+
+REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', '') as normalized_base_ym.
+
+Then extract year and month from it. If normalized_base_ym is '202303', then year is SUBSTR(normalized_base_ym, 1, 4), month is 5,6.
+
+So the SQL would have a CTE to normalize base_ym and split into year and month.
+
+The example uses COALESCE(SUM(CAST(... AS INT)),0) as cnt. So in the SQL, sum the cnt, cast to integer, handle nulls.
+
+Also, the result should be ordered by year then month.
+
+So putting it all together.
+
+The code would create a CTE X where base_ym is normalized, then split into year and month. Then group by and order by.
+
+Now, writing the SQL:
+
+WITH X AS (
+  SELECT 
+    TRIM(""base_ym"") AS base_ym, 
+    ...
+)
+But according to safe rules, base_ym is normalized using REPLACEs.
+
+Wait, the safe rules specify:
+
+base_ym 정규화(YYYYMM):
+REPLACE(REPLACE(REPLACE(TRIM(""base_ym""),'-',''),'_',''),'.','')
+
+Then, perhaps, in the SQL:
+
+SELECT 
+  REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', '') AS normalized_yyyymm,
+  ...
+FROM ...
+
+Then, extract year and month from normalized_yyyymm:
+
+SUBSTR(normalized_yyyymm, 1, 4) AS year_str, 
+SUBSTR(normalized_yyyymm, 5, 2) AS month_str.
+
+Then cast them to integers.
+
+So the final SQL would be:
+
+WITH X AS (
+  SELECT 
+    REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', '') AS normalized_yyyymm,
+    ""cnt""
+  FROM {Q_TBL}
+)
+SELECT 
+  CAST(SUBSTR(normalized_yyyymm, 1, 4) AS INT) AS year,
+  CAST(SUBSTR(normalized_yyyymm, 5, 2) AS INT) AS month,
+  COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt
+FROM X
+GROUP BY normalized_yyyymm
+ORDER BY year, month
+
+Wait, group by normalized_yyyymm ensures that even if there are multiple entries per month (unlikely here), it's summed. Then, since normalized_yyyymm is ordered, the ORDER BY would correctly sort.
+
+But to make sure, the group by is on the normalized_yyyymm, but the group by in SQL must be on the columns used in the select. Alternatively, group by year and month.
+
+But for correctness, in the SQL standards, when using aggregate functions, all columns in the select that are not aggregated must be in the group by. So in SQLite, if you have:
+
+SELECT a, b, SUM(c) ... GROUP BY a, b.
+
+So in our case, if we do group by normalized_yyyymm, then the year and month are derived from that, so it's okay.
+
+But to avoid issues, maybe group by the year and month as integers. But since normalized_yyyymm is a string, but in the select, year and month are derived from it, grouping by normalized_yyyymm should be equivalent to grouping by year and month.
+
+But perhaps better to group by the substrings. Let's see.
+
+Alternative approach:
+
+GROUP BY CAST(SUBSTR(...) AS INT), CAST(...) AS INT.
+
+But to avoid issues with the GROUP BY and avoid using the same expressions in multiple places, using the CTE to compute the year and month might be better.
+
+Alternatively, in the CTE, compute the year and month as integers.
+
+But given that the code needs to be in a single SQL query, and the example shows using substr, perhaps the code would proceed as follows.
+
+So, final SQL would be:
+
+WITH X AS (
+  SELECT 
+    CAST(SUBSTR(REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', ''), 1, 4) AS INT) AS year,
+    CAST(SUBSTR(REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', ''), 5, 2) AS INT) AS month,
+    CAST(""cnt"" AS INT) AS cnt
+  FROM {Q_TBL}
+)
+SELECT 
+  year, 
+  month, 
+  SUM(cnt) AS cnt
+FROM X
+GROUP BY year, month
+ORDER BY year, month
+
+But wait, what if the cnt is stored as a string? Then casting to INT would be necessary.
+
+Yes, in the final select, COALESCE(SUM(...), 0) is used. But in the X CTE, we can safely cast cnt to integer.
+
+So putting it all together, the SQL would be:
+
+WITH X AS (
+  SELECT 
+    CAST(SUBSTR(REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', ''), 1, 4) AS INT) AS year,
+    CAST(SUBSTR(REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', ''), 5, 2) AS INT) AS month,
+    CAST(""cnt"" AS INT) AS cnt
+  FROM {Q_TBL}
+)
+SELECT 
+  year, 
+  month, 
+  COALESCE(SUM(cnt), 0) AS cnt
+FROM X
+GROUP BY year, month
+ORDER BY year, month
+
+But in the SQL string, the replacement for Q_TBL is needed. So the code would format {Q_TBL} as the table name.
+
+So the final code in the Python block would be:
+
+import sqlite3
+import pandas as pd
+
+FILE = ""3_외국인근로자.xlsx""
+TBL_RAW = ""3_tb_foreign_workers_permit""
+Q_TBL = '""' + TBL_RAW + '""'
+
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+sql = '''
+WITH X AS (
+  SELECT 
+    CAST(SUBSTR(REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', ''), 1, 4) AS INT) AS ""year"",
+    CAST(SUBSTR(REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', ''), 5, 2) AS INT) AS ""month"",
+    CAST(""cnt"" AS INT) AS ""cnt""
+  FROM {Q_TBL}
+)
+SELECT 
+  ""year"",
+  ""month"",
+  COALESCE(SUM(""cnt""), 0) AS ""cnt""
+FROM X
+GROUP BY ""year"", ""month""
+ORDER BY ""year"", ""month""
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+
+Wait, but in the SQL, the column names are enclosed in double quotes. However, in the CTE, the column names are year, month, cnt. So in the final SELECT, grouping by those.
+
+But also, the SQL uses ""year"", ""month"", etc., to ensure that the group by is done correctly.
+
+This should work. The code reads the Excel file, loads into SQLite, processes the base_ym to year and month, sums the cnt per month, and orders by year and month.
+
+I think this would answer the user's question about the monthly trend.
+</think>
+
+```python
+import sqlite3
+import pandas as pd
+
+FILE = ""3_외국인근로자.xlsx""
+TBL_RAW = ""3_tb_foreign_workers_permit""
+Q_TBL = '""' + TBL_RAW + '""'
+
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+sql = '''
+WITH X AS (
+  SELECT 
+    CAST(SUBSTR(REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', ''), 1, 4) AS INT) AS ""year"",
+    CAST(SUBSTR(REPLACE(REPLACE(REPLACE(TRIM(""base_ym""), '-', ''), '_', ''), '.', ''), 5, 2) AS INT) AS ""month"",
+    COALESCE(CAST(""cnt"" AS INT), 0) AS ""cnt""
+  FROM {Q_TBL}
+)
+SELECT 
+  ""year"",
+  ""month"",
+  SUM(""cnt"") AS ""cnt""
+FROM X
+GROUP BY ""year"", ""month""
+ORDER BY ""year"", ""month""
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
