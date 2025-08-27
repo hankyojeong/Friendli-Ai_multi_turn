@@ -1,0 +1,297 @@
+﻿question_no,question,sys_prompt_no,output,llm_answer,정답유무
+1_1,2025년 4월 기준 국내 단기 체류 외국인 수는?,1,"year,month,short_term_resident_foreigners","```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+df = pd.read_excel(FILE)
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: 2025년 4월 기준 국내 단기 체류 외국인 수
+sql = '''
+WITH normalized AS (
+  SELECT
+    CAST(""p_year"" AS INT) AS year,
+    CAST(""p_month"" AS INT) AS month,
+    COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt,
+    UPPER(TRIM(""category"")) AS category
+  FROM {Q_TBL}
+  GROUP BY year, month, category
+)
+SELECT
+  year,
+  month,
+  COALESCE(SUM(CASE WHEN category = '단기체류' THEN cnt ELSE 0 END), 0) AS short_term_resident_foreigners
+FROM normalized
+WHERE year = 2025 AND month = 4
+GROUP BY year, month
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+1_2,2023년 7월 기준 국내 단기 체류 외국인 수는?,1,"resident_foreigners_count
+652095","```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+sql = '''
+SELECT
+    COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS resident_foreigners_count
+FROM {Q_TBL}
+WHERE ""p_year"" = 2023
+    AND ""p_month"" = 7
+    AND UPPER(TRIM(""category"")) = '단기체류'
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+1_3,2024년 이후 월별 장기체류 외국인수 추이는?,1,"year,month,long_term_residents
+2024,1,1893911
+2024,2,1891853
+2024,3,1912870
+2024,4,1933874
+2024,5,1953619
+2024,6,1966820
+2024,7,1982246
+2024,8,1986270
+2024,9,2009960
+2024,10,2033177
+2024,11,2042013
+2024,12,2042017
+2025,1,2042236","```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+df = pd.read_excel(FILE)
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: 2024년 이후 월별 장기체류 외국인수 추이
+sql = '''
+SELECT
+  ""p_year"" AS year,
+  ""p_month"" AS month,
+  COALESCE(SUM(""cnt""),0) AS long_term_residents
+FROM {Q_TBL}
+WHERE ""category"" IN ('장기체류거소', '장기체류등록')
+  AND ""p_year"" >= 2024
+GROUP BY ""p_year"", ""p_month""
+ORDER BY ""p_year"", ""p_month""
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+1_4,2023년 월별 장기체류 외국인수 추이는?,1,"p_month,long_term_foreigners
+1,1694876
+2,1698798
+3,1724809
+4,1743811
+5,1766131
+6,1785522
+7,1801477
+8,1812929
+9,1838652
+10,1858699
+11,1874103
+12,1881921","```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+df = pd.read_excel(FILE)
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: 2023년 월별 장기체류 외국인수 추이
+sql = '''
+SELECT
+  p_month,
+  COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS long_term_foreigners
+FROM {Q_TBL}
+WHERE ""category"" IN ('장기체류거소','장기체류등록')
+  AND ""p_year"" = 2023
+GROUP BY ""p_month""
+ORDER BY ""p_month""
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+1_5,2023~2025년 3년간 3월 장기체류 외국인 수와 전년 대비 증감률은?,1,"year,resident_foreigners_count,growth_rate
+2023,1724809,172480900.0
+2024,1912870,0.0","```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+if FILE.lower().endswith("".xlsx""):
+    df = pd.read_excel(FILE)
+else:
+    df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+sql = '''
+WITH base_data AS (
+  SELECT
+    p_year,
+    p_month,
+    SUM(CAST(cnt AS INT)) AS total_cnt
+  FROM {Q_TBL}
+  WHERE category IN ('장기체류거소', '장기체류등록')
+    AND (p_year || '-' || substr('00' || p_month, -2, 2)) BETWEEN '2023-03' AND '2025-03'
+  GROUP BY p_year, p_month
+)
+
+SELECT
+  B.p_year AS year,
+  B.total_cnt AS resident_foreigners_count,
+  ROUND((B.total_cnt - COALESCE(L.total_cnt, 0)) / COALESCE(L.total_cnt, 1) * 100, 2) AS growth_rate
+FROM base_data B
+LEFT JOIN base_data L ON B.p_year = L.p_year + 1 AND B.p_month = L.p_month
+WHERE B.p_month = 3
+ORDER BY B.p_year
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+1_6,2023~2025년 3년간 1월 장기체류 외국인 수와 전년 대비 증감률은?,1,[EXEC ERROR],"```python
+import sqlite3
+import pandas as pd
+
+FILE = ""1_국내체류외국인.xlsx""
+TBL_RAW = ""1_tb_resident_foreigners""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+df = pd.read_excel(FILE)
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: 2023~2025년 1월 장기체류 외국인 수와 전년 대비 증감률
+sql = '''
+WITH BaseData AS (
+  SELECT
+    p_year,
+    p_month,
+    COALESCE(SUM(CAST(cnt AS INT)), 0) AS total_cnt
+  FROM {Q_TBL}
+  WHERE UPPER(TRIM(category)) IN ('장기체류거소', '장기체류등록')
+  GROUP BY p_year, p_month
+)
+SELECT
+  curr.p_year AS year,
+  curr.p_month AS month,
+  curr.total_cnt AS total_count,
+  (curr.total_cnt - COALESCE(prev.total_cnt, 0)) / COALESCE(prev.total_cnt, 0) AS growth_rate
+FROM BaseData AS curr
+LEFT JOIN BaseData AS prev ON curr.p_year = prev.p_year + 1 AND curr.p_month = prev.p_month
+WHERE (curr.p_year >= 2023 AND curr.p_year <= 2025) AND curr.p_month = 1
+'''
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+2_1,2025년 4월 경기 화성시의 장기체류 외국인 연령대 분포?,1,"age,count","```python
+import sqlite3
+import pandas as pd
+
+FILE = ""2_장기체류외국인_지역별_현황.csv""
+TBL_RAW = ""2_tb_long_term_foreigners_by_region""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+df = pd.read_csv(FILE, encoding=""utf-8-sig"", low_memory=False)
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: 2025년 4월, 경기 화성시, 장기체류 외국인 연령대 분포
+sql = '''
+SELECT
+  TRIM(""age"") AS age,
+  COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS count
+FROM {Q_TBL}
+WHERE TRIM(""base_ym"") = '202504'
+  AND (UPPER(TRIM(""sido"")) IN ('경기','경기도') OR UPPER(TRIM(""sido"")) LIKE '경기%')
+  AND (UPPER(TRIM(""sigungu"")) IN ('화성','화성시') OR UPPER(TRIM(""sigungu"")) LIKE '화성%')
+GROUP BY TRIM(""age"")
+ORDER BY TRIM(""age"")
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
+3_1,(E-9)국내 외국인 근로자의 월별 추이는?,1,"year,month,cnt
+2022,2,203121
+2022,3,161921
+2022,6,163886
+2022,9,181247
+2023,2,247191
+2023,3,211361
+2023,6,225307
+2023,9,237846
+2024,2,271925
+2024,3,260047
+2024,6,260073
+2024,9,267452
+2025,3,273139","```python
+import sqlite3
+import pandas as pd
+
+FILE = ""3_외국인근로자.xlsx""
+TBL_RAW = ""3_tb_foreign_workers_permit""
+Q_TBL = '""' + TBL_RAW + '""'
+
+# load
+df = pd.read_excel(FILE)
+con = sqlite3.connect("":memory:"")
+df.to_sql(TBL_RAW, con, index=False)
+
+# SQL: 월별 추이
+sql = '''
+SELECT
+  SUBSTR(TRIM(""base_ym""),1,4) AS year,
+  SUBSTR(TRIM(""base_ym""),6,2) AS month,
+  COALESCE(SUM(CAST(""cnt"" AS INT)), 0) AS cnt
+FROM {Q_TBL}
+GROUP BY SUBSTR(TRIM(""base_ym""),1,4), SUBSTR(TRIM(""base_ym""),6,2)
+ORDER BY year, month
+'''.format(Q_TBL=Q_TBL)
+
+out = pd.read_sql_query(sql, con)
+print(out.to_csv(index=False))
+```",
