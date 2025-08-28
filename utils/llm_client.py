@@ -51,7 +51,7 @@ def call_llm(
     Returns
     -------
     dict
-        ``{"content": str, "needs_reply": bool}``
+        {"content": str, "needs_reply": bool}
     """
 
     messages: List[Dict[str, str]] = [
@@ -66,7 +66,9 @@ def call_llm(
         messages.append({"role": "user", "content": user_question})
 
     resp = client.chat.completions.create(
-        model=model, messages=messages, **kw
+        model=model,
+        messages=messages,
+        **kw
     )
     content = resp.choices[0].message.content
     needs_reply = multi_turn and "```" not in content
@@ -75,3 +77,4 @@ def call_llm(
         "content": content,
         "needs_reply": needs_reply,
     }
+
