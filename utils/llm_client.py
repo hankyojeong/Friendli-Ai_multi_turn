@@ -20,12 +20,15 @@ def make_client(
 def call_llm(
     client: OpenAI,
     model: str,
+    system_prompt: str,
+    user_question: str,
     *,
-    history: List[Dict[str, str]],
+    history: Optional[List[Dict[str, str]]] = None,
     user_reply: Optional[str] = None,
+    multi_turn: bool = False,
     **kw,
-) -> Dict[str, str | bool]:
-    """Call LLM with externally provided conversation history.
+) -> Dict[str, object]:
+    """Call LLM and return whether more user input is required.
 
     Parameters
     ----------
@@ -33,25 +36,45 @@ def call_llm(
         OpenAI client instance.
     model : str
         Model name.
-    history : list[dict]
-        Existing conversation messages.
-    user_reply : str | None, optional
-        Latest user response to append before calling the model.
+    system_prompt : str
+        Prompt describing the task and available metadata.
+    user_question : str
+        The original question from user. Used when ``history`` is empty.
+    history : list of dict, optional
+        Previous conversation messages excluding the system prompt.
+    user_reply : str, optional
+        Reply from the user for a follow-up question.
+    multi_turn : bool, optional
+        If True, the assistant may ask follow-up questions when the
+        request is ambiguous.
 
     Returns
     -------
     dict
-        A dictionary containing ``needs_reply`` and ``content`` keys.
+        {"content": str, "needs_reply": bool}
     """
 
-    messages = list(history)
+    messages: List[Dict[str, str]] = [
+        {"role": "system", "content": system_prompt}
+    ]
+    if history:
+        messages.extend(history)
+
     if user_reply is not None:
         messages.append({"role": "user", "content": user_reply})
+    else:
+        messages.append({"role": "user", "content": user_question})
 
     resp = client.chat.completions.create(
-        model=model, messages=messages, **kw
+        model=model,
+        messages=messages,
+        **kw
     )
     content = resp.choices[0].message.content
+    needs_reply = multi_turn and "```" not in content
 
-    needs_reply = "```" not in content
-    return {"needs_reply": needs_reply, "content": content}
+    return {
+        "content": content,
+        "needs_reply": needs_reply,
+    }
+
