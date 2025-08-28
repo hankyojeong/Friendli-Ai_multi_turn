@@ -20,14 +20,12 @@ def make_client(
 def call_llm(
     client: OpenAI,
     model: str,
-    system_prompt: str,
-    user_question: str,
     *,
-    multi_turn: bool = False,
-    max_turns: int = 5,
+    history: List[Dict[str, str]],
+    user_reply: Optional[str] = None,
     **kw,
-) -> str:
-    """Call LLM with optional multi-turn clarification.
+) -> Dict[str, str | bool]:
+    """Call LLM with externally provided conversation history.
 
     Parameters
     ----------
@@ -35,43 +33,25 @@ def call_llm(
         OpenAI client instance.
     model : str
         Model name.
-    system_prompt : str
-        Prompt describing the task and available metadata.
-    user_question : str
-        The original question from user.
-    multi_turn : bool, optional
-        If True, the assistant may ask follow-up questions when the
-        request is ambiguous. Conversation continues until the model
-        returns a message containing a code block or the maximum number
-        of turns is reached.
-    max_turns : int, optional
-        Maximum number of clarification turns.
+    history : list[dict]
+        Existing conversation messages.
+    user_reply : str | None, optional
+        Latest user response to append before calling the model.
 
     Returns
     -------
-    str
-        Final assistant message (expected to include code block).
+    dict
+        A dictionary containing ``needs_reply`` and ``content`` keys.
     """
 
-    messages: List[Dict[str, str]] = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_question},
-    ]
+    messages = list(history)
+    if user_reply is not None:
+        messages.append({"role": "user", "content": user_reply})
 
-    for _ in range(max_turns):
-        resp = client.chat.completions.create(
-            model=model, messages=messages, **kw
-        )
-        content = resp.choices[0].message.content
-        messages.append({"role": "assistant", "content": content})
+    resp = client.chat.completions.create(
+        model=model, messages=messages, **kw
+    )
+    content = resp.choices[0].message.content
 
-        if multi_turn and "```" not in content:
-            # LLM is likely asking for clarification
-            print(content)
-            user_reply = input("User: ")
-            messages.append({"role": "user", "content": user_reply})
-            continue
-
-        return content
-
-    raise RuntimeError("Max turns exceeded without reaching final answer")
+    needs_reply = "```" not in content
+    return {"needs_reply": needs_reply, "content": content}
