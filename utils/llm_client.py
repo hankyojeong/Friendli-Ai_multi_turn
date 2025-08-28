@@ -20,14 +20,21 @@ def make_client(
 def call_llm(
     client: OpenAI,
     model: str,
-    system_prompt: str,
-    user_question: str,
+    system_prompt: Optional[str] = None,
+    user_question: Optional[str] = None,
     *,
+    messages: Optional[List[Dict[str, str]]] = None,
     multi_turn: bool = False,
     max_turns: int = 5,
     **kw,
 ) -> str:
-    """Call LLM with optional multi-turn clarification.
+    """Call the LLM and return the assistant's message.
+
+    This refactored version accepts either a complete ``messages`` list or a
+    ``system_prompt``/``user_question`` pair for convenience.  The previous
+    interactive ``multi_turn`` behaviour has been removed; the related
+    arguments are retained for backward compatibility but are otherwise
+    ignored.
 
     Parameters
     ----------
@@ -35,43 +42,30 @@ def call_llm(
         OpenAI client instance.
     model : str
         Model name.
-    system_prompt : str
-        Prompt describing the task and available metadata.
-    user_question : str
-        The original question from user.
-    multi_turn : bool, optional
-        If True, the assistant may ask follow-up questions when the
-        request is ambiguous. Conversation continues until the model
-        returns a message containing a code block or the maximum number
-        of turns is reached.
-    max_turns : int, optional
-        Maximum number of clarification turns.
+    system_prompt : str, optional
+        Prompt describing the task.  Used only when ``messages`` is ``None``.
+    user_question : str, optional
+        User input for single-turn calls.  Used only when ``messages`` is
+        ``None``.
+    messages : list of dict, optional
+        Full conversation to send to the model.  If omitted, a single-turn
+        conversation is constructed from ``system_prompt`` and ``user_question``.
 
     Returns
     -------
     str
-        Final assistant message (expected to include code block).
+        Final assistant message.
     """
 
-    messages: List[Dict[str, str]] = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_question},
-    ]
+    if messages is None:
+        if system_prompt is None or user_question is None:
+            raise ValueError(
+                "system_prompt and user_question are required when messages is None"
+            )
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_question},
+        ]
 
-    for _ in range(max_turns):
-        resp = client.chat.completions.create(
-            model=model, messages=messages, **kw
-        )
-        content = resp.choices[0].message.content
-        messages.append({"role": "assistant", "content": content})
-
-        if multi_turn and "```" not in content:
-            # LLM is likely asking for clarification
-            print(content)
-            user_reply = input("User: ")
-            messages.append({"role": "user", "content": user_reply})
-            continue
-
-        return content
-
-    raise RuntimeError("Max turns exceeded without reaching final answer")
+    resp = client.chat.completions.create(model=model, messages=messages, **kw)
+    return resp.choices[0].message.content
