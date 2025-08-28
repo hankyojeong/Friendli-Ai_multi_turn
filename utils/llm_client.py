@@ -1,15 +1,37 @@
-import os
-from typing import Optional, List, Dict
+from typing import List, Dict, Optional
 from openai import OpenAI
 
 
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+# In this repository we avoid the use of environment variables so that the
+# project can be run without additional shell configuration.  Replace the
+# following placeholder values with your actual credentials.  They will be used
+# as the defaults when creating an ``OpenAI`` client.
+DEFAULT_API_KEY = "YOUR_API_KEY"
+DEFAULT_TEAM_ID = "YOUR_TEAM_ID"
+
+
 def make_client(
-    api_key: Optional[str] = None,
-    team_id: Optional[str] = None,
+    api_key: str = DEFAULT_API_KEY,
+    team_id: str = DEFAULT_TEAM_ID,
     base_url: str = "https://api.friendli.ai/serverless/v1",
 ) -> OpenAI:
-    api_key = api_key
-    team_id = team_id
+    """Construct an :class:`OpenAI` client.
+
+    Parameters
+    ----------
+    api_key:
+        API key used for authentication.  Defaults to ``DEFAULT_API_KEY`` defined
+        in this module.
+    team_id:
+        Team identifier to be sent as ``x-friendli-team`` header.  Defaults to
+        ``DEFAULT_TEAM_ID``.
+    base_url:
+        Base URL for the Friendli serverless endpoint.
+    """
+
     return OpenAI(
         api_key=api_key,
         base_url=base_url,
