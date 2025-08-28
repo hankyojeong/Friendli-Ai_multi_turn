@@ -8,8 +8,8 @@ def make_client(
     team_id: Optional[str] = None,
     base_url: str = "https://api.friendli.ai/serverless/v1",
 ) -> OpenAI:
-    api_key = api_key or os.getenv("FRIENDLI_API_KEY", "REPLACE_ME")
-    team_id = team_id or os.getenv("FRIENDLI_TEAM_ID", "REPLACE_ME")
+    api_key = api_key
+    team_id = team_id
     return OpenAI(
         api_key=api_key,
         base_url=base_url,
