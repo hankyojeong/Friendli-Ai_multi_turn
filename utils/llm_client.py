@@ -53,7 +53,6 @@ def call_llm(
     dict
         {"content": str, "needs_reply": bool}
     """
-
     messages: List[Dict[str, str]] = [
         {"role": "system", "content": system_prompt}
     ]
