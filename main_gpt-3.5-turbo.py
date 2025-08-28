@@ -9,7 +9,7 @@ from openai import OpenAI
 MODEL = "gpt-3.5-turbo"
 PROMPT_DIR = Path("system_prompt")
 PROMPT_FILE_NO = 3
-EXP_ROOT_DIR = Path(r"C:\Users\hanky\OneDrive\Desktop\서울대학교\IDEA 연구실\LLM\Friendli AI\Experiment_GPT\gpt-3.5-turbo")
+EXP_ROOT_DIR = Path(r"C:\Users\hanky\OneDrive\문서\GitHub\Friendli-Ai_multi_turn\Experiment_GPT\gpt-3.5-turbo")
 
 # 환경변수 OPENAI_API_KEY 권장
 client = OpenAI(api_key="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")

@@ -7,7 +7,7 @@ from utils import make_client, run_all_payloads, run_single_payload
 MODEL = "meta-llama/Llama-4-Scout-17B-16E-Instruct"
 PROMPT_DIR = Path("system_prompt")
 PROMPT_FILE_NO = 1
-EXP_ROOT_DIR = Path(r"C:\Users\hanky\OneDrive\Desktop\서울대학교\IDEA 연구실\LLM\Friendli AI\Experiment_meta-llama\Llama-4-Scout-17B-16E-Instruct")
+EXP_ROOT_DIR = Path(r"C:\Users\hanky\OneDrive\문서\GitHub\Friendli-Ai_multi_turn\Experiment_meta-llama\Llama-4-Scout-17B-16E-Instruct")
 
 # 환경변수 FRIENDLI_API_KEY / FRIENDLI_TEAM_ID 사용 권장
 client = make_client(api_key="flp_YzhZtTDMj0hZfLeVK5YROilYtKIVtH2YgxWX2zlr8s2o2e", team_id="l9h8CAleMYvh")
