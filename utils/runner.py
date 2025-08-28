@@ -34,7 +34,6 @@ def run_single_payload(
     if fixed_out_dir is not None and fixed_log_dir is not None:
         out_dir, log_dir = fixed_out_dir, fixed_log_dir
     else:
-        # ★ 단일 실행도 새 번호 자동 생성
         out_dir, log_dir, _ = get_out_dirs(exp_root_dir, prompt_file_no, reuse=False)
 
     payload = namespace[varname]
